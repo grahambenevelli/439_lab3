@@ -37,7 +37,7 @@ main(int argc, char **argv)
   smutex_init(&mutex);
   scond_init(&readyCondition);
   scond_init(&countCondition);
-  // comment
+  // comment2
   for(ii = 0; ii < NTHREADS; ii++){
     args[ii] = ii;
     sthread_create(&tid[ii], foo, (void *)&args[ii]);
