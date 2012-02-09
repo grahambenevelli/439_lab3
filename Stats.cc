@@ -202,7 +202,7 @@ Stats::toString(char *buffer, int maxLen)
   int total = 0;
   char numstr[10];
   for( ; i < maxLen && j < max_id ; j++, i++ ) {
-    sprintf(numstr, "%d", byte_array[j]);
+    sprintf(numstr, "#%d", byte_array[j]);
     //cout << "String: " << numstr << "\n";
     for ( k = 0 ; numstr[k] != '\0' && i < max_id; k++, i++ ) {
       buffer[i] = numstr[k];
@@ -211,6 +211,11 @@ Stats::toString(char *buffer, int maxLen)
     total += byte_array[j];
   }
   buffer[i] = 0;
+
+  for (i = 0; i <maxLen ; i++) {
+    byte_array[i] = 0;
+  }
+  maxLen = 0;
 
   smutex_unlock(&lock);
 
@@ -239,9 +244,32 @@ Stats::toString(char *buffer, int maxLen)
 void
 Stats::unitTest()
 {
-  assert(0); // TBD: add some simple unit tests. 
+  assert(1); // TBD: add some simple unit tests. 
              // You need to design these tests based on
              // your data structures.
+  
+  bool result = false;
+  int test = 1;
+
+  // test update
+  // test 1
+  update(1, 2);
+  result = byte_array[1] == 2;
+  if (!result) {
+    printf("#Test %d failed\n", test);
+    return;
+  }
+  test++;
+
+  // test 2    
+  update(1, 2);
+  result = byte_array[1] == 4;
+  if (!result) {
+    printf("#Test %d failed\n", test);
+    return;
+  }
+  test++;
+
   printf("Stats self test passes.\n");
   return;
   
