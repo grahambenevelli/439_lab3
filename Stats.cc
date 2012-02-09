@@ -39,7 +39,20 @@ Stats::Stats()
     // standards will receive little or
     // no credit.
     //
+  smutex_init(&lock);
+  smutex_lock(&lock);
 
+  int i;
+  for (i = 0 ; i < MAX_FLOW_ID ; i++ ) {
+    byte_array[i] = 0;
+  }
+
+  scond_init(&updating);
+  scond_init(&writing);
+
+  max_id = 0;
+
+  smutex_unlock(&lock);
 }
 
 
@@ -64,6 +77,9 @@ Stats::Stats()
  */
 Stats::~Stats()
 {
+  smutex_destroy(&lock);
+  scond_destroy(&updating);
+  scond_destroy(&writing);
 }
 
 
@@ -114,6 +130,21 @@ Stats::update(int flowId, int byteCount)
     // standards will receive little or
     // no credit.
     //
+  // get lock
+  smutex_lock(&lock);
+
+  while()
+    scond_wait(&updating, &lock);
+
+  // make changes
+  if (flowId > max_id) max_id = flowId;
+  byte_array[flowId] += byteCount;
+
+  
+  scond_signal(&printing, &lock);
+
+  // release lock
+  smutex_unlock(&lock);
 }
 
 
