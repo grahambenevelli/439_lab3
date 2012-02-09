@@ -201,9 +201,9 @@ Stats::toString(char *buffer, int maxLen)
   int k = 0; // index in numstr
   int total = 0;
   char numstr[10];
-  for( ; i < max-1 && j < max_id ; j++, i++ ) {
+  for( ; i < maxLen && j < max_id ; j++, i++ ) {
     sprintf(numstr, "%d", byte_array[j]);
-    cout << "String: " << numstr << "\n";
+    //cout << "String: " << numstr << "\n";
     for ( k = 0 ; numstr[k] != '\0' && i < max_id; k++, i++ ) {
       buffer[i] = numstr[k];
     }

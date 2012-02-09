@@ -13,6 +13,8 @@ class Stats{
   static const int MAX_FLOW_ID = 1023;
 
  private:
-  smutex lock;
+  smutex_t lock;
+  int byte_array[MAX_FLOW_ID];
+  int max_id;
 };
 #endif  
