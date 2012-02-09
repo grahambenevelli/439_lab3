@@ -47,9 +47,6 @@ Stats::Stats()
     byte_array[i] = 0;
   }
 
-  scond_init(&updating);
-  scond_init(&writing);
-
   max_id = 0;
 
   smutex_unlock(&lock);
@@ -78,8 +75,6 @@ Stats::Stats()
 Stats::~Stats()
 {
   smutex_destroy(&lock);
-  scond_destroy(&updating);
-  scond_destroy(&writing);
 }
 
 
@@ -130,21 +125,17 @@ Stats::update(int flowId, int byteCount)
     // standards will receive little or
     // no credit.
     //
-  // get lock
-  smutex_lock(&lock);
 
-  while()
-    scond_wait(&updating, &lock);
 
-  // make changes
-  if (flowId > max_id) max_id = flowId;
-  byte_array[flowId] += byteCount;
+	// get lock
+	smutex_lock(&lock);
 
-  
-  scond_signal(&printing, &lock);
+	// make changes
+	if (flowId > max_id) max_id = flowId;
+	byte_array[flowId] += byteCount; 
 
-  // release lock
-  smutex_unlock(&lock);
+	// release lock
+	smutex_unlock(&lock);
 }
 
 
@@ -202,7 +193,27 @@ Stats::toString(char *buffer, int maxLen)
     // standards will receive little or
     // no credit.
     //
-  buffer[0] = '\0'; // FIXME
+
+  smutex_lock(&lock);
+  
+  int i = 0; // index in bufer
+  int j = 0; // index in byte_array
+  int k = 0; // index in numstr
+  int total = 0;
+  char numstr[10];
+  for( ; i < max-1 && j < max_id ; j++, i++ ) {
+    sprintf(numstr, "%d", byte_array[j]);
+    cout << "String: " << numstr << "\n";
+    for ( k = 0 ; numstr[k] != '\0' && i < max_id; k++, i++ ) {
+      buffer[i] = numstr[k];
+    }
+    buffer[i] = ' ';
+    total += byte_array[j];
+  }
+  buffer[i] = 0;
+
+  smutex_unlock(&lock);
+
   return buffer;
 }
 
