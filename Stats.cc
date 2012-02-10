@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 #include <sys/time.h>
 #include "Stats.h"
 
+using namespace std;
 
 /*
  *------------------------------------------------------------------
@@ -201,21 +203,28 @@ Stats::toString(char *buffer, int maxLen)
   int k = 0; // index in numstr
   int total = 0;
   char numstr[10];
-  for( ; i < maxLen && j < max_id ; j++, i++ ) {
-    sprintf(numstr, "#%d", byte_array[j]);
-    //cout << "String: " << numstr << "\n";
-    for ( k = 0 ; numstr[k] != '\0' && i < max_id; k++, i++ ) {
+  cout << "maxLen: " << maxLen << "\n";
+  for( ; i < maxLen-1 && j <= max_id ; j++, i++ ) {
+    sprintf(numstr, "%d", byte_array[j]);
+    cout << "numstr: " << numstr << "\n";
+    cout << "index in buffer: " << i << "\n";
+    cout << "index in byte_array" << j << "\n";
+    for ( k = 0 ; numstr[k] != '\0' && i < maxLen; k++, i++ ) {
       buffer[i] = numstr[k];
     }
     buffer[i] = ' ';
     total += byte_array[j];
+    byte_array[j] = 0;
   }
-  buffer[i] = 0;
+  // add total
+  sprintf(numstr, "%d", total);                                     
+  for ( k = 0 ; numstr[k] != '\0' && i < maxLen; k++, i++ ) {
+    buffer[i] = numstr[k];
+  }
 
-  for (i = 0; i <maxLen ; i++) {
-    byte_array[i] = 0;
-  }
+  buffer[i] = '\0';
   maxLen = 0;
+
 
   smutex_unlock(&lock);
 
@@ -259,6 +268,11 @@ Stats::unitTest()
     printf("#Test %d failed\n", test);
     return;
   }
+  result = max_id == 1;
+  if (!result) {
+    printf("#Test %d failed\n", test);
+    return;
+  }
   test++;
 
   // test 2    
@@ -268,7 +282,38 @@ Stats::unitTest()
     printf("#Test %d failed\n", test);
     return;
   }
+  result = max_id == 1;
+  if (!result) {
+    printf("#Test %d failed\n", test);
+    return;
+  }
   test++;
+
+  // test 3
+  update(4, 1);
+  result = byte_array[1] == 4;
+  if (!result) {
+    printf("#Test %d failed\n", test);
+    return;
+  }
+  result = byte_array[4] == 1;
+  if (!result) {
+    printf("#Test %d failed\n", test);
+    return;
+  }
+  result = max_id == 4;
+  if (!result) {
+    printf("#Test %d failed\n", test);
+    return;
+  }
+  test++;
+
+  // test toString
+
+  // test 4
+  int len = 25;
+  char *buffer = new char[len];
+  printf("%s\n", toString(buffer, len));
 
   printf("Stats self test passes.\n");
   return;
