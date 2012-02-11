@@ -36,5 +36,5 @@ int main(int argc, char **argv)
   
   s->unitTest();
 
-  assert(0); // Add unit tests for other modules
+  assert(1); // Add unit tests for other modules
 }

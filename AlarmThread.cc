@@ -18,6 +18,7 @@ startAlarmThread(NWScheduler *scheduler)
     //printf("Deadline: \t%lld\n", deadline);
     //printf("Now:\t\t%lld\n", now);
     if(deadline > now){
+	//printf("ALARM SLEEPING...\n");
       //
       // This is the only place you can sleep()
       // in this project.

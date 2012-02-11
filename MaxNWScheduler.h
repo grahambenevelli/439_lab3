@@ -20,8 +20,10 @@ class MaxNWScheduler:public NWScheduler{
  	long maxBytes;
 	long totalTransmittedBytes;
 	long long deadline;
+	bool dlmet;
 	smutex_t Lock;
 	scond_t SafeSend;
+	scond_t DeadLineMet;
 	int threads;
 };
 #endif 

@@ -1,0 +1,26 @@
+#ifndef _STATS_H_
+#define _STATS_H_
+#include <sys/time.h>
+#include "sthread.h"
+class Stats{
+ public:
+  Stats();
+  ~Stats();
+  void update(int flowId, int byteCount);
+  char *toString(char *buffer, int maxLen);
+  void unitTest();
+
+  static const int MAX_FLOW_ID = 1023;
+
+ private:
+  smutex lock;
+  int byte_array[MAX_FLOW_ID];
+  scond_t updating;
+  scond_t printing;
+  int max_id;
+  char AU; // actively updating
+  char AP; // actively printing
+  char WU; // waiting update
+  char WP; // waiting printing
+};
+#endif  

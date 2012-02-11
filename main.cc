@@ -30,6 +30,7 @@ int ready = 0;
 int
 main(int argc, char **argv)
 {
+  // an array of threads
   pthread_t tid[NTHREADS];
   int ii;
   int args[NTHREADS];
