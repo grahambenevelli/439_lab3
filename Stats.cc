@@ -203,12 +203,8 @@ Stats::toString(char *buffer, int maxLen)
   int k = 0; // index in numstr
   int total = 0;
   char numstr[10];
-  cout << "maxLen: " << maxLen << "\n";
   for( ; i < maxLen-1 && j <= max_id ; j++, i++ ) {
-    sprintf(numstr, "%d", byte_array[j]);
-    cout << "numstr: " << numstr << "\n";
-    cout << "index in buffer: " << i << "\n";
-    cout << "index in byte_array" << j << "\n";
+    sprintf(numstr, "%lld", byte_array[j]);
     for ( k = 0 ; numstr[k] != '\0' && i < maxLen; k++, i++ ) {
       buffer[i] = numstr[k];
     }
@@ -223,7 +219,7 @@ Stats::toString(char *buffer, int maxLen)
   }
 
   buffer[i] = '\0';
-  maxLen = 0;
+  //maxLen = 0;
 
 
   smutex_unlock(&lock);
