@@ -17,11 +17,11 @@ class MaxNWScheduler:public NWScheduler{
  	long long signalNextDeadline(long long deadlineMS);
 	bool canSafelySend();
  private:
- 	int maxBytes;
-	int totalTransmittedBytes;
+ 	long maxBytes;
+	long totalTransmittedBytes;
 	long long deadline;
 	smutex_t Lock;
 	scond_t SafeSend;
-	int alarm;
+	int threads;
 };
 #endif 

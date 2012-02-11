@@ -11,14 +11,16 @@ MaxNWScheduler::MaxNWScheduler(long bytesPerSec)
   	maxBytes = bytesPerSec;
 	smutex_init(&Lock);
 	scond_init(&SafeSend);
-	if ((alarm = fork()) != 0)
-		startAlarmThread(this);
+	deadline= nowMS();
+	threads = 0;
+	//if ((alarm = fork()) != 0)
+		//startAlarmThread(this);
 }
 
 MaxNWScheduler::~MaxNWScheduler() {
 	smutex_destroy(&Lock);
 	scond_destroy(&SafeSend);
-	kill(alarm, -9);
+	//kill(alarm, -9);
 }
 
 //-------------------------------------------------
@@ -43,21 +45,26 @@ MaxNWScheduler::waitMyTurn(int ignoredFlowID, float ignoredWeight, int lenToSend
 {
 	assert(1); // TBD: Fill this in
 	smutex_lock(&Lock);
-
+	threads++;
+	
 	while(!canSafelySend()) { // deadline >= now
+		//printf("# waiting for wait my turn\n");
 		scond_wait(&SafeSend, &Lock);
 	}
+	threads--;
+	//printf("#--DW\n");
 	// update totalTransmittedBytes
-	totalTransmittedBytes += lenToSend;
+	totalTransmittedBytes = 1000*lenToSend;
+	//totalTransmittedBytes += lenToSend;
 
 	smutex_unlock(&Lock);
-	
 }
 
 
 bool
 MaxNWScheduler::canSafelySend() {
-	return deadline < nowMS();
+	//return deadline < nowMS();
+	return totalTransmittedBytes == 0;
 }
 
 //-------------------------------------------------
@@ -79,12 +86,31 @@ MaxNWScheduler::canSafelySend() {
 long long
 MaxNWScheduler::signalNextDeadline(long long prevDeadlineMS)
 {
-	assert(1); // TBD: Fill this in
+	long long nextDL = prevDeadlineMS;
+	smutex_lock(&Lock);
+
+	if(totalTransmittedBytes > 0) {
+		//printf("TTB: %ld\n", totalTransmittedBytes);
+		//printf("maxBytes: %ld\n", maxBytes); 
+		nextDL += ((double) totalTransmittedBytes / (double) maxBytes);
+		assert(nextDL > prevDeadlineMS);
+		scond_broadcast(&SafeSend, &Lock);
+		totalTransmittedBytes = 0;
+	}
+
+	smutex_unlock(&Lock);	
+	return nextDL;
+
+	/*assert(1); // TBD: Fill this in
 	smutex_lock(&Lock);
 	// next deadline t1 >= t0 + b0/m
 	// == return = prevDeadlineMS + tolalTransmitted/maxBytes
-	deadline = prevDeadlineMS + ((long long) totalTransmittedBytes/maxBytes);
-	scond_broadcast(&SafeSend, &Lock);
+	deadline = prevDeadlineMS + ((long long) ((double) totalTransmittedBytes * 1000)/((double) maxBytes));
+	if (deadline < nowMS()) {totalTransmittedBytes = 0; scond_signal(&SafeSend, &Lock);}
+	//else scond_broadcast(&SafeSend, &Lock);
+	//printf("#bc\n");
+	
 	smutex_unlock(&Lock);
 	return deadline;
+	*/
 }

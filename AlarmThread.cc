@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <sys/time.h>
+#include <stdio.h>
 #include "AlarmThread.h"
 #include "util.h"
 
@@ -14,6 +15,8 @@ startAlarmThread(NWScheduler *scheduler)
   while(1){
     deadline = scheduler->signalNextDeadline(deadline);
     now = nowMS();
+    //printf("Deadline: \t%lld\n", deadline);
+    //printf("Now:\t\t%lld\n", now);
     if(deadline > now){
       //
       // This is the only place you can sleep()
