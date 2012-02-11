@@ -14,7 +14,7 @@ class Stats{
 
  private:
   smutex_t lock;
-  int byte_array[MAX_FLOW_ID];
+  long long byte_array[MAX_FLOW_ID];
   int max_id;
 };
 #endif  
