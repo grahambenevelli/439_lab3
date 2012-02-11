@@ -3,10 +3,22 @@
 #include <sys/time.h>
 #include "MaxNWScheduler.h"
 #include "NWScheduler.h"
+#include "util.h"
 
 MaxNWScheduler::MaxNWScheduler(long bytesPerSec)
 {
-  assert(0); // TBD: Fill this in
+  	assert(1); // TBD: Fill this in
+  	maxBytes = bytesPerSec;
+	smutex_init(&Lock);
+	scond_init(&SafeSend);
+	if ((alarm = fork()) != 0)
+		startAlarmThread(this);
+}
+
+MaxNWScheduler::~MaxNWScheduler() {
+	smutex_destroy(&Lock);
+	scond_destroy(&SafeSend);
+	kill(alarm, -9);
 }
 
 //-------------------------------------------------
@@ -29,7 +41,23 @@ MaxNWScheduler::MaxNWScheduler(long bytesPerSec)
 void
 MaxNWScheduler::waitMyTurn(int ignoredFlowID, float ignoredWeight, int lenToSend)
 {
-  assert(0); // TBD: Fill this in
+	assert(1); // TBD: Fill this in
+	smutex_lock(&Lock);
+
+	while(!canSafelySend()) { // deadline >= now
+		scond_wait(&SafeSend, &Lock);
+	}
+	// update totalTransmittedBytes
+	totalTransmittedBytes += lenToSend;
+
+	smutex_unlock(&Lock);
+	
+}
+
+
+bool
+MaxNWScheduler::canSafelySend() {
+	return deadline < nowMS();
 }
 
 //-------------------------------------------------
@@ -51,5 +79,12 @@ MaxNWScheduler::waitMyTurn(int ignoredFlowID, float ignoredWeight, int lenToSend
 long long
 MaxNWScheduler::signalNextDeadline(long long prevDeadlineMS)
 {
-  assert(0); // TBD: Fill this in
+	assert(1); // TBD: Fill this in
+	smutex_lock(&Lock);
+	// next deadline t1 >= t0 + b0/m
+	// == return = prevDeadlineMS + tolalTransmitted/maxBytes
+	deadline = prevDeadlineMS + ((long long) totalTransmittedBytes/maxBytes);
+	scond_broadcast(&SafeSend, &Lock);
+	smutex_unlock(&Lock);
+	return deadline;
 }

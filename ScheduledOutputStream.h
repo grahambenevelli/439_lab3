@@ -15,12 +15,15 @@ class ScheduledOutputStream : public OutputStream{
 			Stats *stats,
 			float weight,
 			NWScheduler *scheduler);
-  virtual ~ScheduledOutputStream();
-  virtual int write(char *bytes, int length);
+	virtual ~ScheduledOutputStream();
+	virtual int write(char *bytes, int length);
   
  private:
-  float weight;
-  NWScheduler *scheduler;
+  	float weight;
+	int flowId;
+	int fd;
+  	NWScheduler *scheduler;
+	Stats *stats;
 };
 
 #endif 

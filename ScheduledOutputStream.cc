@@ -34,10 +34,13 @@ ScheduledOutputStream::ScheduledOutputStream(int fd_,
 					     NWScheduler *scheduler_)
   : OutputStream(fd_, flowId_, stats_)
 {
-  weight = weight_;
-  scheduler = scheduler_;
-  assert(scheduler_ != NULL);
-  assert(weight_ >= 0.0);
+	weight = weight_;
+	scheduler = scheduler_;
+	assert(scheduler_ != NULL);
+	assert(weight_ >= 0.0);
+	flowId = flowId_;
+	fd = fd_;
+	stats = stats_;
 }
 
 
@@ -87,16 +90,19 @@ ScheduledOutputStream::~ScheduledOutputStream()
  */
 int ScheduledOutputStream::write(char *bytes, int length)
 {
-  assert(length >= 0);
-  assert(bytes != NULL);
+	assert(length >= 0);
+	assert(bytes != NULL);
 
-  /*
-   * TBD: wait my turn and update stats
-   * e.g. scheduler.waitMyTurn(flowId, length, ...)
-   * ...
-   */
-  assert(0); // TBD
+	/*
+	* TBD: wait my turn and update stats
+	* e.g. scheduler.waitMyTurn(flowId, length, ...)
+	* ...
+	*/
+	scheduler->waitMyTurn(flowId, weight, length);
+	stats->update(flowId, length);
 
-  return OutputStream::write(bytes, length);
+  	assert(1); // TBD
+
+  	return OutputStream::write(bytes, length);
 
 }
