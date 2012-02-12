@@ -201,7 +201,7 @@ Stats::toString(char *buffer, int maxLen)
   int i = 0; // index in bufer
   int j = 0; // index in byte_array
   int k = 0; // index in numstr
-  int total = 0;
+  long long total = 0;
   char numstr[10];
   for( ; i < maxLen-1 && j <= max_id ; j++, i++ ) {
     sprintf(numstr, "%lld", byte_array[j]);
@@ -213,7 +213,7 @@ Stats::toString(char *buffer, int maxLen)
     byte_array[j] = 0;
   }
   // add total
-  sprintf(numstr, "%d", total);                                     
+  sprintf(numstr, "%lld", total);                                     
   for ( k = 0 ; numstr[k] != '\0' && i < maxLen; k++, i++ ) {
     buffer[i] = numstr[k];
   }
@@ -305,11 +305,34 @@ Stats::unitTest()
   test++;
 
   // test toString
-
-  // test 4
   int len = 25;
   char *buffer = new char[len];
-  printf("%s\n", toString(buffer, len));
+  toString(buffer, len);
+  //printf("Buffer: \t%s\n", buffer);
+  char *exp = (char*) "0 4 0 0 1 5";
+  //printf("exp: \t\t%s\n", exp);
+
+  // Test 5-15
+  int i;
+  for (i = 0; i < len && buffer[i] != '\0'; i++ ) {
+    result = buffer[i] == exp[i];
+    if (!result) {
+      printf("#Test %d failed\n", test);
+      printf("Got:\t%d\n", (int) buffer[i]);
+      printf("Got:\t%d\n", (int) exp[i]);
+      return;
+    }
+    test++;
+  }
+
+  // Test 16
+  result = buffer[i] == exp[i];
+  if (!result) {
+    printf("#Test %d failed\n", test);
+    return;
+  }
+  test++;
+
 
   printf("Stats self test passes.\n");
   return;
