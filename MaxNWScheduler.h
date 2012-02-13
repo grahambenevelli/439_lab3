@@ -7,26 +7,21 @@
 #include "AlarmThread.h"
 
 class MaxNWScheduler:public NWScheduler{
-  /*
-   * TBD: Fill this in
-   */
  public:
   	MaxNWScheduler(long bytesPerSec);
 	~MaxNWScheduler();
  	void waitMyTurn(int flowId, float weight, int lenToSend);
  	long long signalNextDeadline(long long deadlineMS);
-	bool canSafelySend();
  private:
+	bool canSafelySend();
+	long long calRunOff(long tran, long max, long long time);
+
  	long maxBytes;
-	long totalTransmittedBytes;
-	long long deadline;
-	bool dlmet;
+	long BytesToSend;
+	int runOff;
+
+	//synchronization variables
 	smutex_t Lock;
 	scond_t SafeSend;
-	scond_t DeadLineMet;
-	int threads;
-	int runOff;
-	bool needAddTime;
-	long long calRunOff(long tran, long max, long long time);
 };
 #endif 

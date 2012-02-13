@@ -93,16 +93,11 @@ int ScheduledOutputStream::write(char *bytes, int length)
 	assert(length >= 0);
 	assert(bytes != NULL);
 
-	/*
-	* TBD: wait my turn and update stats
-	* e.g. scheduler.waitMyTurn(flowId, length, ...)
-	* ...
-	*/
+	//wait turn
 	scheduler->waitMyTurn(flowId, weight, length);
+	//update the stats
 	stats->update(flowId, length);
-
-  	assert(1); // TBD
-
+	//write
   	return OutputStream::write(bytes, length);
 
 }

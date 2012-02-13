@@ -7,23 +7,20 @@
 
 MaxNWScheduler::MaxNWScheduler(long bytesPerSec)
 {
-  	assert(1); // TBD: Fill this in
-  	maxBytes = bytesPerSec;
-	smutex_init(&Lock);
-	scond_init(&SafeSend);
-	deadline= nowMS();
-	dlmet = false;
-	threads = 0;
+  	maxBytes = bytesPerSec; 
+	assert( maxBytes == bytesPerSec);
+	assert( maxBytes > 0);
+
+	smutex_init(&Lock);	//init lock
+	scond_init(&SafeSend);	//init Condition variable
+	
 	runOff = 0;
-	needAddTime = false;
-	//if ((alarm = fork()) != 0)
-		//startAlarmThread(this);
+	BytesToSend = 0;
 }
 
 MaxNWScheduler::~MaxNWScheduler() {
 	smutex_destroy(&Lock);
 	scond_destroy(&SafeSend);
-	//kill(alarm, -9);
 }
 
 //-------------------------------------------------
@@ -46,28 +43,16 @@ MaxNWScheduler::~MaxNWScheduler() {
 void
 MaxNWScheduler::waitMyTurn(int ignoredFlowID, float ignoredWeight, int lenToSend)
 {
-	assert(1); // TBD: Fill this in
 	smutex_lock(&Lock);
-	threads++;
-	
-	while(!canSafelySend()) { // no one is sending
-		//printf("# waiting for wait my turn\n");
-		scond_wait(&SafeSend, &Lock);
-	}
-	
-	
-	// wait till deadline
-	//printf("#%d sent %d bytes\n", ignoredFlowID, lenToSend);
-	
-	
-	
-	
+	assert(lenToSend <= maxBytes);
 
-	threads--;
-	//printf("#--DW\n");
-	// update totalTransmittedBytes
-	totalTransmittedBytes = 1000*lenToSend;
-	//totalTransmittedBytes += lenToSend;
+	while(!canSafelySend()) { // check if we can safely send
+		scond_wait(&SafeSend, &Lock); //wait if we can't
+	}
+
+	// update BytesToSend
+	// we times by 1000 here to accomodate for the second to millisecond conversion for our deadline
+	BytesToSend = 1000*lenToSend;
 
 	smutex_unlock(&Lock);
 }
@@ -75,8 +60,9 @@ MaxNWScheduler::waitMyTurn(int ignoredFlowID, float ignoredWeight, int lenToSend
 
 bool
 MaxNWScheduler::canSafelySend() {
-	//return deadline < nowMS();
-	return totalTransmittedBytes == 0;
+	// we can only safely send if the amount of bytes to send is zero
+	// otherwise, another thread is currently sending
+	return BytesToSend == 0;
 }
 
 //-------------------------------------------------
@@ -101,38 +87,48 @@ MaxNWScheduler::signalNextDeadline(long long prevDeadlineMS)
 	smutex_lock(&Lock);
 	
 	long long nextDL = prevDeadlineMS;
-	if(prevDeadlineMS == 0) { // if this is first pass through, add current time.
+
+	if(prevDeadlineMS == 0) { // if this is first pass through, upadte to current time.
 		nextDL += nowMS() + 1;
 	}
 
-	if(totalTransmittedBytes > 0) { 
-	        //nextDL += (((double) totalTransmittedBytes + 1) / (double) maxBytes);
-		//nextDL += ((totalTransmittedBytes) / maxBytes);
-		//printf("Add Time: \t%ld\n", ((totalTransmittedBytes) / maxBytes));
-		nextDL = calRunOff(totalTransmittedBytes, maxBytes, nextDL);		
+	if(BytesToSend > 0) {
 		// calculate run off
-		// calRunOff(totalTransmittedBytes, maxBytes);
-		assert(nextDL > prevDeadlineMS);
-		scond_broadcast(&SafeSend, &Lock);
-		totalTransmittedBytes = 0;
+		nextDL = calRunOff(BytesToSend, maxBytes, nextDL);
+		assert(nextDL > prevDeadlineMS);	//make sure our next deadline is in the future
+
+		scond_broadcast(&SafeSend, &Lock);	//broadcast to other waiting threads.
+		BytesToSend = 0;			//reset amount of bytes to send
 	}
 
-	smutex_unlock(&Lock);	
+	smutex_unlock(&Lock);
 	return nextDL;
 }
 
+
+/*
+calRunOff(long tran, long max, long long time)
+
+Calculates the amount of time to add to the next deadline
+while keeping track of runoff bytes.
+
+tran = amount of bytes to transmit * 1000;
+max = max amount of bytes per second
+time = last deadline
+*/
 long long
 MaxNWScheduler::calRunOff(long tran, long max, long long time) {
-	//printf("tran: \t%ld\n", tran);
-	//printf("max: \t%ld\n", max);
-	//assert(0);
-	
-	while (tran >= max) { time++; tran -= max; }
-	runOff += tran;
-	if (runOff >= max) {time += 2; runOff -= max;}
-	//if (runOff > 0  && needAddTime){
-	//	time++;
-	//	needAddTime = false;	
-	//}
+	while (tran >= max) {   // essentially time += (tran / max); but without the rounding
+		time++;
+		tran -= max;
+	}
+
+	runOff += tran;  //add the run off remaining from tran
+
+	if (runOff >= max) {  //whenever enough runoff is accumulated, add 2 ms to our deadline
+		time += 2;
+		runOff -= max;  // keep track of remaining runoff
+	}
+
 	return time;
 }
