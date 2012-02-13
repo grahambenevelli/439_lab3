@@ -51,6 +51,8 @@ Stats::Stats()
 
   max_id = 0;
 
+  //threads = 0;
+
   smutex_unlock(&lock);
 }
 
@@ -135,7 +137,7 @@ Stats::update(int flowId, int byteCount)
 	// make changes
 	if (flowId > max_id) max_id = flowId;
 	byte_array[flowId] += byteCount; 
-
+	//threads++;
 	// release lock
 	smutex_unlock(&lock);
 }
@@ -220,8 +222,8 @@ Stats::toString(char *buffer, int maxLen)
 
   buffer[i] = '\0';
   //maxLen = 0;
-
-
+  //printf("threads: %d\n", threads);
+  //threads = 0;
   smutex_unlock(&lock);
 
   return buffer;

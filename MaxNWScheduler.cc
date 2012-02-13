@@ -14,6 +14,8 @@ MaxNWScheduler::MaxNWScheduler(long bytesPerSec)
 	deadline= nowMS();
 	dlmet = false;
 	threads = 0;
+	runOff = 0;
+	needAddTime = false;
 	//if ((alarm = fork()) != 0)
 		//startAlarmThread(this);
 }
@@ -47,12 +49,19 @@ MaxNWScheduler::waitMyTurn(int ignoredFlowID, float ignoredWeight, int lenToSend
 	assert(1); // TBD: Fill this in
 	smutex_lock(&Lock);
 	threads++;
-	while(!canSafelySend()) { // deadline >= now
+	
+	while(!canSafelySend()) { // no one is sending
 		//printf("# waiting for wait my turn\n");
 		scond_wait(&SafeSend, &Lock);
 	}
-
+	
+	
 	// wait till deadline
+	//printf("#%d sent %d bytes\n", ignoredFlowID, lenToSend);
+	
+	
+	
+	
 
 	threads--;
 	//printf("#--DW\n");
@@ -93,13 +102,16 @@ MaxNWScheduler::signalNextDeadline(long long prevDeadlineMS)
 	
 	long long nextDL = prevDeadlineMS;
 	if(prevDeadlineMS == 0) { // if this is first pass through, add current time.
-		nextDL += nowMS();
+		nextDL += nowMS() + 1;
 	}
 
-	if(totalTransmittedBytes > 0) {
-		//printf("TTB: %ld\n", totalTransmittedBytes);
-		//printf("maxBytes: %ld\n", maxBytes); 
-		nextDL += ((double) totalTransmittedBytes / (double) maxBytes);
+	if(totalTransmittedBytes > 0) { 
+	        //nextDL += (((double) totalTransmittedBytes + 1) / (double) maxBytes);
+		//nextDL += ((totalTransmittedBytes) / maxBytes);
+		//printf("Add Time: \t%ld\n", ((totalTransmittedBytes) / maxBytes));
+		nextDL = calRunOff(totalTransmittedBytes, maxBytes, nextDL);		
+		// calculate run off
+		// calRunOff(totalTransmittedBytes, maxBytes);
 		assert(nextDL > prevDeadlineMS);
 		scond_broadcast(&SafeSend, &Lock);
 		totalTransmittedBytes = 0;
@@ -107,4 +119,20 @@ MaxNWScheduler::signalNextDeadline(long long prevDeadlineMS)
 
 	smutex_unlock(&Lock);	
 	return nextDL;
+}
+
+long long
+MaxNWScheduler::calRunOff(long tran, long max, long long time) {
+	//printf("tran: \t%ld\n", tran);
+	//printf("max: \t%ld\n", max);
+	//assert(0);
+	
+	while (tran >= max) { time++; tran -= max; }
+	runOff += tran;
+	if (runOff >= max) {time += 2; runOff -= max;}
+	//if (runOff > 0  && needAddTime){
+	//	time++;
+	//	needAddTime = false;	
+	//}
+	return time;
 }

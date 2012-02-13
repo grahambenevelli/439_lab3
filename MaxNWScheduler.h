@@ -25,5 +25,8 @@ class MaxNWScheduler:public NWScheduler{
 	scond_t SafeSend;
 	scond_t DeadLineMet;
 	int threads;
+	int runOff;
+	bool needAddTime;
+	long long calRunOff(long tran, long max, long long time);
 };
 #endif 

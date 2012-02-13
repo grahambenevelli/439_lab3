@@ -16,5 +16,6 @@ class Stats{
   smutex_t lock;
   long long byte_array[MAX_FLOW_ID];
   int max_id;
+  //int threads;
 };
 #endif  
