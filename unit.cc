@@ -11,6 +11,7 @@
 #include "OutputStream.h"
 #include "SocketLibrary/socklib.h"
 #include "Stats.h"
+#include "MaxNWScheduler.h"
 
 /*
  *------------------------------------------------------------------
@@ -35,6 +36,10 @@ int main(int argc, char **argv)
   Stats *s = new Stats();
   
   s->unitTest();
+
+  MaxNWScheduler *nws = new MaxNWScheduler(1000);
+
+  nws->unitTest();
 
   assert(1); // Add unit tests for other modules
 }
