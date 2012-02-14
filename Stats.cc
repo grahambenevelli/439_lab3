@@ -44,15 +44,14 @@ Stats::Stats()
   smutex_init(&lock);
   smutex_lock(&lock);
 
+  // create array of bytes
   int i;
   for (i = 0 ; i < MAX_FLOW_ID ; i++ ) {
     byte_array[i] = 0;
   }
 
   max_id = 0;
-
-  //threads = 0;
-
+	
   smutex_unlock(&lock);
 }
 
@@ -78,6 +77,7 @@ Stats::Stats()
  */
 Stats::~Stats()
 {
+  // only thing that needs to be worried about
   smutex_destroy(&lock);
 }
 
@@ -133,11 +133,12 @@ Stats::update(int flowId, int byteCount)
 
 	// get lock
 	smutex_lock(&lock);
+	assert (flowId >= 0 && byteCount >= 0);
 
 	// make changes
 	if (flowId > max_id) max_id = flowId;
 	byte_array[flowId] += byteCount; 
-	//threads++;
+
 	// release lock
 	smutex_unlock(&lock);
 }
@@ -206,7 +207,9 @@ Stats::toString(char *buffer, int maxLen)
   long long total = 0;
   char numstr[10];
   for( ; i < maxLen-1 && j <= max_id ; j++, i++ ) {
+    // create string of the value
     sprintf(numstr, "%lld", byte_array[j]);
+    // add to buffer
     for ( k = 0 ; numstr[k] != '\0' && i < maxLen; k++, i++ ) {
       buffer[i] = numstr[k];
     }
@@ -221,9 +224,7 @@ Stats::toString(char *buffer, int maxLen)
   }
 
   buffer[i] = '\0';
-  //maxLen = 0;
-  //printf("threads: %d\n", threads);
-  //threads = 0;
+  
   smutex_unlock(&lock);
 
   return buffer;

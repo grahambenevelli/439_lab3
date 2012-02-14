@@ -13,9 +13,8 @@ class Stats{
   static const int MAX_FLOW_ID = 1023;
 
  private:
-  smutex_t lock;
-  long long byte_array[MAX_FLOW_ID];
-  int max_id;
-  //int threads;
+  smutex_t lock; // lock variable
+  long long byte_array[MAX_FLOW_ID]; // an array of bytes that have been sent by flow id
+  int max_id; // of the threads
 };
 #endif  

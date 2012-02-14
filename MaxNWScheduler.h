@@ -12,6 +12,7 @@ class MaxNWScheduler:public NWScheduler{
 	~MaxNWScheduler();
  	void waitMyTurn(int flowId, float weight, int lenToSend);
  	long long signalNextDeadline(long long deadlineMS);
+	void unitTest();
  private:
 	bool canSafelySend();
 	long long calRunOff(long tran, long max, long long time);

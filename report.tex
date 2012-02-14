@@ -32,7 +32,7 @@ Slip days remaining:5\\
 
 {\em We have some synchronization variables to ensure that only one thread is trasmitting data at once and under the correct transfer rate. This is accomplished by used deadlines, calcuated by the alarm thread, that will sleep until the deadline is met. We keep track of these through three integers. We have two methods, waitMyTurn() and signalNextDeadline(), that do the brunt of the work. waitMyTurn() will first wait to see if another thread is sending any data. When current running thread is done waiting, then the it will send a message that a new deadline needs to calculated. The alarm thread will consistently call signalNextDeadline(). When this method is called, it will check to see if any new data needs to be transmitted. If so, then it calculates the next deadline and broadcasts to all other waiting threads.}
 
-{\em We can sendAndRecv numerous times to view the resulting data. We then spot checked the result to see what and if there were any mistakes. }
+{\em We can sendAndRecv numerous times to view the resulting data. We then spot checked the result to see what and if there were any mistakes. Then we ran unit tests on the methods, testing that in a controled set of threads the expected results occur}
 
 {\em We came up with two ways of approaching the signalNextDeadline to make sure that there is no rounding error. One used the current time to set the next deadline, this one is safer and simulates a working system better. So keeping at the current time it would sometimes go over the rate. The other way makes sure to round up when over the new deadline is calculated. }
 

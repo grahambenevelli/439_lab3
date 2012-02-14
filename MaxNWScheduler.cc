@@ -92,13 +92,11 @@ MaxNWScheduler::signalNextDeadline(long long prevDeadlineMS)
 		nextDL += nowMS() + 1;
 	}
 
-	if(BytesToSend > 0) {
+	if(BytesToSend > 0) { // 
 		// calculate run off
 		nextDL = calRunOff(BytesToSend, maxBytes, nextDL);
-		assert(nextDL > prevDeadlineMS);	//make sure our next deadline is in the future
-
-		scond_broadcast(&SafeSend, &Lock);	//broadcast to other waiting threads.
-		BytesToSend = 0;			//reset amount of bytes to send
+     		scond_broadcast(&SafeSend, &Lock);	//broadcast to other waiting threads.
+		BytesToSend = 0;			//reset amount of bytes to send, allows other threads to continue.
 	}
 
 	smutex_unlock(&Lock);
@@ -126,9 +124,95 @@ MaxNWScheduler::calRunOff(long tran, long max, long long time) {
 	runOff += tran;  //add the run off remaining from tran
 
 	if (runOff >= max) {  //whenever enough runoff is accumulated, add 2 ms to our deadline
-		time += 2;
+		time += 1;
 		runOff -= max;  // keep track of remaining runoff
 	}
 
 	return time;
+}
+
+
+
+/*
+
+Unit Tests!
+
+*/
+
+void
+MaxNWScheduler::unitTest() {
+  int test = 1;
+  bool result;
+
+  //test 1 - check maxBytes is set in constructor
+  result = maxBytes == 1000;
+  if (!result) {
+    printf("Test %d failed\n", test);
+    return;
+  }
+  test++;
+
+  //test 2 - check to see that update sets Bytes to send
+  waitMyTurn(0, 0.0, 500);
+  result = maxBytes == 1000;
+  if (!result) {
+    printf("Test %d failed\n", test);
+    return;
+  }
+  
+  result = BytesToSend == 500*1000;
+  if (!result) {
+    printf("Test %d failed\n", test);
+    return;
+  }
+  test++;
+
+  // test 3 - see if threads are scheduled
+  if (fork()) {
+    wait();
+    if(fork()) {
+      signalNextDeadline(nowMS());
+      wait();
+    } else {
+      waitMyTurn(0, 0.0, 1);
+      result = BytesToSend == 1*1000;
+      if (!result) {
+        printf("Test %d failed\n", test);
+        return;
+      }
+      exit(0);
+    }
+  } else {
+    waitMyTurn(0, 0.0, 2);
+    result = BytesToSend == 2*1000;
+    if (!result) {
+      printf("Test %d failed\n", test);
+      return;
+    }
+  }
+  test++;
+
+  // test 4 - test runoff
+  result = runOff == 0;
+  if (!result) {
+    printf("Test %d failed\n", test);
+    return;
+  }
+  test++;
+
+  // test 5
+  maxBytes = 10000;
+  runOff = 0;
+  waitMyTurn(0, 0.0, 1);
+  signalNextDeadline(0);
+  result = runOff == 1000;
+  if (!result) {
+    printf("Test %d failed\n", test);
+    return;
+  }
+  test++;
+
+
+
+  printf("All Tests Passed: MaxNWScheduler\n");
 }
