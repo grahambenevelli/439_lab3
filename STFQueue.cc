@@ -10,6 +10,9 @@ STFQueue::STFQueue() {
 	int i;
 	for (i = 0; i < max_ID; i++) {
 		t_array[i] = (thread_list*) malloc(sizeof(thread_list));
+		t_array[i]->startTime = 0;
+		t_array[i]->finishTime = 0;
+		t_array[i]->next = NULL;
 	}
 	size = 0;
 	currentTime = 0;
@@ -45,7 +48,7 @@ STFQueue::deleteNodes() {
 		delete(delthread);
 		t_array[i] = NULL;
 	}
-	assert(size == 0);
+	//assert(size == 0);
 }
 
 void
@@ -70,7 +73,7 @@ STFQueue::printQueue() {
 
 bool
 STFQueue::enqueue(int flowID, float weight, int lenToSend) {
-
+	//printf("Que: LenToSend: %d\n", lenToSend);
 	
 	// resize array if needed
 	if (flowID > max_ID) resizeArray(flowID);	
@@ -93,11 +96,13 @@ STFQueue::enqueue(int flowID, float weight, int lenToSend) {
 	assert(current->next == NULL);
 
 	//calculate starttime
-	temp->startTime = MAX(current->finishTime, currentTime); // ******************check this
+	temp->startTime = MAX((current->finishTime), currentTime); // ******************check this
+	//printf("In Que ST: %lld\n", temp->startTime);
 
 	//calculate finishtime
 	temp->finishTime = temp->startTime + (lenToSend/weight + 0.5); // 0.5 to round up to nearest number
 	temp->next = NULL;	
+	//printf("In Que FT: %lld\n", temp->finishTime);
 
 	// current is last node
 	current->next = temp;

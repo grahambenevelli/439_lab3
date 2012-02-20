@@ -11,6 +11,8 @@ STFQNWScheduler::STFQNWScheduler(long bytesPerSec)
    maxBytes = bytesPerSec;
 	assert( maxBytes == bytesPerSec);
 	assert( maxBytes > 0);
+	//que = new STFQueue();
+	//que = STFQueue();
 
 	smutex_init(&lock); //init lock
 	scond_init(&safeSend); //init Condition variable
@@ -27,6 +29,7 @@ STFQNWScheduler::~STFQNWScheduler() {
 	scond_destroy(&safeSend);
 	scond_destroy(&deadline);
 	scond_destroy(&queueFull);
+	//free(que);
 }
 
 
@@ -55,7 +58,7 @@ STFQNWScheduler::waitMyTurn(int flowId, float weight, int lenToSend)
 	// signal that there is a deadline to update
 	scond_signal(&deadline, &lock);
 
-	smutex_unlock(	&lock);
+	smutex_unlock(&lock);
 }
 
 
@@ -118,17 +121,22 @@ STFQNWScheduler::calRunOff(long tran, long max, long long time) {
 
 
 void STFQNWScheduler::unit() {
-	/*int test = 1;
+	int test = 1;
 	bool result;
 	bool allPassed = true;
 
-	waitMyTurn(0, 1, 10)
+	que.printQueue();
+
+	waitMyTurn(0, 1, 10);
+	
 	// waitMyTurn Tests 1
-	result = max_ID == 10;
-	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	result = bytesToSend == 10000;
+	if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
 	test++;
 
-	printf("All %d test passed in STFQNEScheduler\n", test); */
+	que.printQueue();	
+
+	if (allPassed) printf("All %d test passed in STFQNEScheduler\n", test-1); 
 }
 
 
