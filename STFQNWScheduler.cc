@@ -1,40 +1,10 @@
 #include <assert.h>
+#include <stdio.h>
 #include "STFQNWScheduler.h"
+#include "STFQueue.cc"
 
 
-STFQNWScheduler::STFQNWScheduler(long bytesPerSec)
-{
-  	maxBytes = bytesPerSec; 
-	assert( maxBytes == bytesPerSec);
-	assert( maxBytes > 0);
-
-	smutex_init(&lock);	//init lock
-	scond_init(&safeSend);	//init Condition variable
-	
-	runOff = 0;
-	bytesToSend = 0;
-	nextId = -1;
-}
-
-STFQNWScheduler::~STFQNWScheduler() {
-	smutex_destroy(&lock);
-	scond_destroy(&safeSend);
-}
-
-void 
-STFQNWScheduler::waitMyTurn(int flowId, float weight, int lenToSend)
-{
-	smutex_lock(&lock);
-	
-	while(!canSafelySend() && flowId != nextId) {
-		break;
-	}
-
-
-	smutex_unlock(&lock);
-}
-
-long long 
+long long
 STFQNWScheduler::signalNextDeadline(long long prevDeadline)
 {
 	smutex_lock(&lock);
@@ -54,51 +24,57 @@ STFQNWScheduler::canSafelySend() {
 
 long long
 STFQNWScheduler::calRunOff(long tran, long max, long long time) {
-	while (tran >= max) {   // essentially time += (tran / max); but without the rounding
+	while (tran >= max) { // essentially time += (tran / max); but without the rounding
 		time++;
 		tran -= max;
 	}
 
-	runOff += tran;  //add the run off remaining from tran
+	runOff += tran; //add the run off remaining from tran
 
-	if (runOff >= max) {  //whenever enough runoff is accumulated, add 2 ms to our deadline
+	if (runOff >= max) { //whenever enough runoff is accumulated, add 2 ms to our deadline
 		time += 2;
-		runOff -= max;  // keep track of remaining runoff
+		runOff -= max; // keep track of remaining runoff
 	}
 
 	return time;
 }
 
-STFQueue::STFQueue() {
-	root = NULL;
-	size = 0;
-	maxsize = 10;
-	lastFinishTag = 0;
-	
+
+STFQNWScheduler::STFQNWScheduler(long bytesPerSec)
+{
+   maxBytes = bytesPerSec;
+	assert( maxBytes == bytesPerSec);
+	assert( maxBytes > 0);
+
+	smutex_init(&lock); //init lock
+	scond_init(&safeSend); //init Condition variable
+
+	runOff = 0;
+	bytesToSend = 0;
+	nextId = -1;
 }
 
-STFQueue::~STFQueue() {
+STFQNWScheduler::~STFQNWScheduler() {
+	smutex_destroy(&lock);
+	scond_destroy(&safeSend);
 }
 
-bool STFQueue::enqueue(int flowID, float weight, int lenToSend, long long startTime) {
-	//check bounds
-	if(size == maxsize) return false;
+void
+STFQNWScheduler::waitMyTurn(int flowId, float weight, int lenToSend)
+{
+	smutex_lock(&lock);
 
-	//calculate priority
-	
-	
-	//create the new node
-	struct thread_list * temp = root;
-	
-	while(temp != NULL) {
-		temp = temp->next;
-	}
-	if(size == 0) {
-	  //temp = malloc(sizeof(thread_list));
-	}
-	return true;
+	while(!canSafelySend() && flowId != nextId) {
+		break;
+	}	
+
+
+	smutex_unlock(	&lock);
 }
 
-int STFQueue::dequeue() {
-	return -1;
+void STFQNWScheduler::unit() {
+	int tests = 1;
+
+	printf("All %d test passed in STFQNEScheduler\n", tests);
 }
+

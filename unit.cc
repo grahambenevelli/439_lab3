@@ -12,6 +12,7 @@
 #include "SocketLibrary/socklib.h"
 #include "Stats.h"
 #include "MaxNWScheduler.h"
+#include "STFQueue.h"
 
 /*
  *------------------------------------------------------------------
@@ -40,6 +41,13 @@ int main(int argc, char **argv)
   MaxNWScheduler *nws = new MaxNWScheduler(1000);
 
   nws->unitTest();
+
+  STFQueue *q = new STFQueue();
+
+  q->unit();
+
+  delete s;
+  delete nws;
 
   assert(1); // Add unit tests for other modules
 }
