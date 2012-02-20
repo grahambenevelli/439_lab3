@@ -8,7 +8,7 @@ class STFQueue {
 		long long startTime;
 		thread_list *next;
 	};
-	struct thread_list *t_array;
+	struct thread_list **t_array;
 	int size;
 	static const int MAX_SIZE = 10;	
 	int max_ID;	
