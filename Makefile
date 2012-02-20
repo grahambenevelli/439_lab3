@@ -7,11 +7,11 @@ ARFLAGS = ru
 RANLIB = ranlib
 
 
-COMMONSRCS = BufSchedOutputStream.cc ScheduledInputStream.cc InputStream.cc ScheduledOutputStream.cc OutputStream.cc sthread.cc Stats.cc util.cc NWScheduler.cc Flag.cc AlarmThread.h AlarmThread.cc STFQNWScheduler.cc MaxNWScheduler.cc
+COMMONSRCS = BufSchedOutputStream.cc ScheduledInputStream.cc InputStream.cc ScheduledOutputStream.cc OutputStream.cc sthread.cc Stats.cc util.cc NWScheduler.cc Flag.cc AlarmThread.h AlarmThread.cc STFQNWScheduler.cc MaxNWScheduler.cc rec_queue.cc receivePool2.cc
 
 COMMONOBJS := $(COMMONSRCS:.cc=.o) SocketLibrary/libsock.a
 
-OTHERSRCS = sender.cc receiver.cc unit.cc common.c sendAndRecv.cc
+OTHERSRCS = sender.cc receiver.cc unit.cc common.c sendAndRecv.cc 
 
 SRCS = $(COMMONSRCS) $(OTHERSRCS)
 
@@ -84,6 +84,11 @@ plots: plot1.pdf plot2.pdf plot3.pdf plot1b.pdf plot2b.pdf plot3b.pdf
 clean:
 	/bin/rm -f sender receiver unit *.o core *~ TAGS tmp.dat tmp.ps *.log *.aux
 	cd SocketLibrary && make clean
+
+cm:
+	/bin/rm -f sender receiver unit *.o core *~ TAGS tmp.dat tmp.ps *.log *.aux
+	cd SocketLibrary && make clean
+	make
 
 realclean: clean
 	/bin/rm -f *.pdf *ps data1 data2 data3 data1b data2b data3b
