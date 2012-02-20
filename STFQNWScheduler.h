@@ -14,7 +14,7 @@ class STFQNWScheduler:public NWScheduler{
 	int runOff;
 	int nextId; //id of the next thread to run
 	STFQueue que;
-	bool canSafelySend();
+	bool canSafelySend(int flowId);
 	long long calRunOff(long tran, long max, long long time);
 
 

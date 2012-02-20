@@ -20,7 +20,7 @@ STFQNWScheduler::STFQNWScheduler(long bytesPerSec)
 	scond_init(&queueFull);
 
 	runOff = 0;
-	bytesToSend = 0;
+	bytesToSend = -1;
 	nextId = -1;
 }
 
@@ -48,9 +48,11 @@ STFQNWScheduler::waitMyTurn(int flowId, float weight, int lenToSend)
 	que.enqueue(flowId, weight, lenToSend);
 
 	// wait to be signaled
-	while(!canSafelySend() && flowId != nextId) {
+	while((!canSafelySend(flowId)) || (flowId != nextId && nextId != -1)) {// || (flowId == nextId))) {
 		scond_wait(&safeSend, &lock);
 	}
+	//assert(flowId == nextId);
+	assert(canSafelySend(flowId));
 
 	// update bytes to send
 	bytesToSend = lenToSend*1000;
@@ -68,7 +70,7 @@ long long
 STFQNWScheduler::signalNextDeadline(long long prevDeadline)
 {
 	smutex_lock(&lock);
-	
+	//printf("deadline()\n");
 	long long nextDL = prevDeadline;
 	if(prevDeadline == 0) { // if this is first pass through, upadte to current time.
 		nextDL += nowMS() + 1;
@@ -78,6 +80,7 @@ STFQNWScheduler::signalNextDeadline(long long prevDeadline)
 	while(bytesToSend == 0) {
 		scond_wait(&deadline, &lock);
 	}
+
 	nextDL = calRunOff(bytesToSend, maxBytes, nextDL);
 	assert(nextDL >= prevDeadline);
 	bytesToSend = 0;			//reset amount of bytes to send, allows other threads to continue.
@@ -88,6 +91,7 @@ STFQNWScheduler::signalNextDeadline(long long prevDeadline)
 	// singal next thread
      	scond_broadcast(&safeSend, &lock);
      	scond_broadcast(&queueFull, &lock);
+	
 
 	smutex_unlock(&lock);
 
@@ -95,10 +99,10 @@ STFQNWScheduler::signalNextDeadline(long long prevDeadline)
 }
 
 bool
-STFQNWScheduler::canSafelySend() {
+STFQNWScheduler::canSafelySend(int flowId) {
 	// we can only safely send if the amount of bytes to send is zero
 	// otherwise, another thread is currently sending
-	return bytesToSend == 0;
+	return (bytesToSend == 0);
 }
 
 
