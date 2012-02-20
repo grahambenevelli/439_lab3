@@ -7,6 +7,8 @@
 class STFQNWScheduler:public NWScheduler{
 	smutex_t lock;
 	scond_t safeSend;
+	scond_t deadline;
+	scond_t queueFull;
 	long maxBytes;
 	long bytesToSend;
 	int runOff;

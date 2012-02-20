@@ -14,14 +14,14 @@ STFQueue::STFQueue() {
 	size = 0;
 	currentTime = 0;
 
-	smutex_init(&Lock);	//init lock
-	scond_init(&fullQueue);	//init Condition variable
+	//smutex_init(&Lock);	//init lock
+	//scond_init(&fullQueue);	//init Condition variable
 }
 
 STFQueue::~STFQueue() {
 	// get rid of sync variables
-	smutex_destroy(&Lock);
-	scond_destroy(&fullQueue);
+	//smutex_destroy(&Lock);
+	//scond_destroy(&fullQueue);
 	// get rid of nodes
 	deleteNodes();
 	delete(t_array);
@@ -32,7 +32,6 @@ STFQueue::deleteNodes() {
 	int i;
 	struct thread_list * temp;
 	struct thread_list * delthread;
-	printf("Size: %d\n", size);
 	for (i = 0; i < max_ID; i++) {
 		if(t_array[i] == NULL) continue;
 		delthread = t_array[i];
@@ -46,7 +45,6 @@ STFQueue::deleteNodes() {
 		delete(delthread);
 		t_array[i] = NULL;
 	}
-	printf("Size: %d\n", size);
 	assert(size == 0);
 }
 
@@ -72,20 +70,21 @@ STFQueue::printQueue() {
 
 bool
 STFQueue::enqueue(int flowID, float weight, int lenToSend) {
-	smutex_lock(&Lock);
+
 	
 	// resize array if needed
 	if (flowID > max_ID) resizeArray(flowID);	
 
 	//check bounds
-	while(size == MAX_SIZE) {
+	/*while(size == MAX_SIZE) {
 		scond_wait(&fullQueue, &Lock);
-	}
+	}*/
+	if(size == MAX_SIZE) return -1;
 	assert(size < MAX_SIZE);
 	size++;
 
 	//create the new node
-	struct thread_list *temp = (thread_list*) malloc(sizeof(thread_list));
+	struct thread_list *temp = (thread_list*) malloc(sizeof(struct thread_list));
 
 	struct thread_list *current = t_array[flowID];
 
@@ -98,16 +97,13 @@ STFQueue::enqueue(int flowID, float weight, int lenToSend) {
 
 	//calculate finishtime
 	temp->finishTime = temp->startTime + (lenToSend/weight + 0.5); // 0.5 to round up to nearest number
+	temp->next = NULL;	
 
 	// current is last node
 	current->next = temp;
-	assert(current->next != NULL);
 
 	//update base finishTime
 	t_array[flowID]->finishTime = temp->finishTime;
-	
-
-	smutex_unlock(&Lock);
 
 	return true;
 }
@@ -118,12 +114,10 @@ STFQueue::resizeArray(int id) {
 }
 
 int STFQueue::dequeue() {
-	smutex_lock(&Lock);
 
 	// find lowest start time
 	int i;
 	if (size == 0) {
-		printf("IN DEQUEUE() size fail\n");
 		smutex_unlock(&Lock);
 		return -1;
 	}
@@ -154,15 +148,18 @@ int STFQueue::dequeue() {
 	delete(temp);
 
 	// signal next enqueue
-	scond_signal(&fullQueue, &Lock);
+	//scond_signal(&fullQueue, &Lock);
 
-	smutex_unlock(&Lock);
+
 
 	// return flowID
 	return min;
 }
 
-
+bool 
+STFQueue::queueFull() {
+	return size == MAX_SIZE;
+}
 
 
 
@@ -322,25 +319,63 @@ void STFQueue::unit() {
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
 
+	enqueue(4, 3, 10);
+	enqueue(5, 3, 10);
+	enqueue(1, 3, 10);
+
+	de = dequeue();
+
+	// dequeue Tests 29
+	result = de == 1;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	de = dequeue();
+
+	// dequeue Tests 30
+	result = de == 4;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	de = dequeue();
+
+	// dequeue Tests 31
+	result = de == 5;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	de = dequeue();
+
+	// dequeue Tests 32
+	result = de == 1;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	de = dequeue();
+
+	// dequeue Tests 33
+	result = de == 0;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
 
 	enqueue(4, 3, 10);
 	enqueue(5, 3, 10);
 	enqueue(1, 3, 10);
-	enqueue(4, 3, 10);
-	enqueue(4, 3, 10);
-	printQueue();
+
 	deleteNodes();
 
-	// delete Tests 29
+	// delete Tests 34
 	result = t_array[0] == NULL;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
 
-	// delete Tests 30
+	// delete Tests 35
 	result = t_array[1] == NULL;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
 
 	if(allPassed)printf("All %d test passed in STFQueue\n", test-1);
 }
+
+
 

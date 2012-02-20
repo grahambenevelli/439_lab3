@@ -27,6 +27,7 @@ class STFQueue {
 	int dequeue();
 	void printQueue();
 	void unit();
+	bool queueFull();
 };
 
 #endif 
