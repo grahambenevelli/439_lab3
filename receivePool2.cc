@@ -9,14 +9,35 @@
  */
 
 
-#include "receivePool2.h"
+//#include "receivePool2.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <errno.h>
+#include "common.h"
+#include "InputStream.h"
+#include "ScheduledInputStream.h"
+#include "SocketLibrary/socklib.h"
+#include "Stats.h"
+#include "sthread.h"
+#include "util.h"
+#include "rec_queue.h"
 
+void acceptor(rec_queue * RQ);
+void worker(rec_queue * RQ);
 
+Stats *stats;
+int nflows;
+static const int NUM_WORKERS = 10;
+int socket_listen;
 
-
-receivePool2::receivePool2(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
-	//RQ = new rec_queue();
+	rec_queue *RQ = new rec_queue();
 	int ii;
 	stats = new Stats();
 
@@ -38,24 +59,22 @@ receivePool2::receivePool2(int argc, char **argv)
 	// set up the rec_queue;
 	//rec_queue rq;
 
-	InputStream *io = new InputStream(5, 6, stats);
+	//InputStream *io = new InputStream(5, 6, stats);
 
 	sthread_t *thread = (sthread_t *)malloc(sizeof(sthread_t));
-	sthread_create(thread, (void*(*)(void*))acceptor, (void*)io);/*
+	sthread_create(thread, (void*(*)(void*))acceptor, (void*)RQ);
 
 	for(ii = 0; ii < NUM_WORKERS; ii++){
 		sthread_t *thread = (sthread_t *)malloc(sizeof(sthread_t));
-		sthread_create(thread, (void*(*)(void*))worker, (void*)io);
+		sthread_create(thread, (void*(*)(void*))worker, (void*)RQ);
 	}
-*/
+
+	return 1;
 }
 
-receivePool2::~receivePool2() {
-	//delete(RQ);
-}
 
 void 
-receivePool2::acceptor(int * n) //enqueue inputstream
+acceptor(rec_queue * RQ) //enqueue inputstream
   {
 	int socket_recv;
 
@@ -77,13 +96,13 @@ receivePool2::acceptor(int * n) //enqueue inputstream
 	    nflows++;
 	    InputStream *is = new InputStream(socket_recv, nflows, stats);
     
-	    //RQ->enqueue(is);
+	    RQ->enqueue(is);
   	}
   }
 
 
 void 
-receivePool2::worker(int * n)//dequeue inputstream
+worker(rec_queue * RQ)//dequeue inputstream
   {
 	int got;
 	long long tot = 0;
@@ -92,7 +111,7 @@ receivePool2::worker(int * n)//dequeue inputstream
 	InputStream *is;
 
     while(1){
-	//is = RQ->dequeue();
+	is = RQ->dequeue();
 	got = is->read(buffer, BUFFER_SIZE);
 	if(got <= 01){
 		if(DEBUGGING){

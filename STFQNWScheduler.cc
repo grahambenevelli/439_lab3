@@ -51,6 +51,9 @@ STFQNWScheduler::waitMyTurn(int flowId, float weight, int lenToSend)
 	while((!canSafelySend(flowId)) || (flowId != nextId && nextId != -1)) {// || (flowId == nextId))) {
 		scond_wait(&safeSend, &lock);
 	}
+	
+	nextId = -1;	
+
 	//assert(flowId == nextId);
 	assert(canSafelySend(flowId));
 
@@ -129,16 +132,73 @@ void STFQNWScheduler::unit() {
 	bool result;
 	bool allPassed = true;
 
-	que.printQueue();
+	//que.printQueue();
 
-	waitMyTurn(0, 1, 10);
-	
-	// waitMyTurn Tests 1
+	nextId = 0;
+	bytesToSend = 0;
+	waitMyTurn(0, 1, 10);	
+
+	// Test 1
 	result = bytesToSend == 10000;
 	if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
 	test++;
 
-	que.printQueue();	
+	long long nextDL = signalNextDeadline(0);
+	long long time = nowMS();
+	
+	// Test 2
+	result = nextDL <= time + 1 && nextDL >= time -1;
+        if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
+	test++;
+
+	// Test 3
+	nextId = 0;
+	bytesToSend = 0;
+	waitMyTurn(0, 1, 10);
+
+	// Test 4
+	result = bytesToSend == 10000;
+        if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
+	test++;
+
+	nextDL = signalNextDeadline(0);
+	time = nowMS();
+
+        // test 5                                                                                      
+        result = nextDL <= time + 1 && nextDL >= time -1;
+	if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
+	test++;
+
+        // Test 6
+        result = nextId == 0;
+        if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
+        test++;
+
+        result = nextId == 0;
+        if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
+        test++;
+
+	nextId = 4;
+	bytesToSend = 0;
+	waitMyTurn(4, 4, 1024);
+
+	// Test 7
+	result = bytesToSend == 1024000;
+        if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
+	test++;
+
+        nextDL = signalNextDeadline(nextDL);
+
+        // Test 8
+        result = nextDL <= time + 5 && nextDL >= time - 5;
+	if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
+	test++;
+
+	// Test 9
+        result = nextId == 4;
+        if (!result) {printf("Test %d failed in STFQNWScheduler\n", test); allPassed = false;}
+        test++;
+
 
 	if (allPassed) printf("All %d test passed in STFQNEScheduler\n", test-1); 
 }

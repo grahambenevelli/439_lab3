@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "STFQueue.h"
 
 #define MAX(x,y) (x) > (y) ? (x) : (y)
 #define MIN(x,y) (x) < (y) ? (x) : (y)
@@ -98,7 +99,7 @@ STFQueue::enqueue(int flowID, float weight, int lenToSend) {
 	//calculate starttime
 	temp->startTime = MAX((current->finishTime), currentTime); // ******************check this
 	//printf("In Que ST: %lld\n", temp->startTime);
-
+	
 	//calculate finishtime
 	temp->finishTime = temp->startTime + (lenToSend/weight + 0.5); // 0.5 to round up to nearest number
 	temp->next = NULL;	
@@ -212,7 +213,7 @@ void STFQueue::unit() {
 	result = t_array[0]->next->finishTime == 10;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
-
+	
 	// enqueue Tests 8
 	result = t_array[0]->next->next == NULL;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
@@ -378,7 +379,7 @@ void STFQueue::unit() {
 	result = t_array[1] == NULL;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
-
+	
 	if(allPassed)printf("All %d test passed in STFQueue\n", test-1);
 }
 

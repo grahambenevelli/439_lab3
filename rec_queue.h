@@ -32,6 +32,7 @@ class rec_queue {
 	void enqueue(InputStream *io);
 	InputStream* dequeue();
 	bool isEmpty();
+	void unit();
 };
 
 

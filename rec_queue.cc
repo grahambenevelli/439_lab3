@@ -65,7 +65,42 @@
 	}
 
 	bool rec_queue::isEmpty() {
-		return root != NULL;
+		return root == NULL;
 	}
+
+void rec_queue::unit() {
+	int test = 1;
+	bool result;
+	bool allPassed = true;
+
+	//construtctor test 1 
+	result = root == NULL;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	//isEmpty test 2
+	result = isEmpty();
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	enqueue(NULL);
+
+	//isEmpty test 3
+	result = !isEmpty();
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+	
+	//isEmpty test 3
+	result = root != NULL;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+/*
+	//isEmpty test 3
+	result = root->next == NULL;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+*/
+	if (allPassed) printf("All %d tests passed in rec_queue\n", test-1);
+}
 
 
