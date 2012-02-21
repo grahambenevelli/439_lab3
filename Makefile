@@ -7,11 +7,11 @@ ARFLAGS = ru
 RANLIB = ranlib
 
 
-COMMONSRCS = BufSchedOutputStream.cc ScheduledInputStream.cc InputStream.cc ScheduledOutputStream.cc OutputStream.cc sthread.cc Stats.cc util.cc NWScheduler.cc Flag.cc AlarmThread.h AlarmThread.cc STFQNWScheduler.cc MaxNWScheduler.cc rec_queue.cc receivePool2.cc
+COMMONSRCS = BufSchedOutputStream.cc ScheduledInputStream.cc InputStream.cc ScheduledOutputStream.cc OutputStream.cc sthread.cc Stats.cc util.cc NWScheduler.cc Flag.cc AlarmThread.h AlarmThread.cc STFQNWScheduler.cc MaxNWScheduler.cc rec_queue.cc
 
 COMMONOBJS := $(COMMONSRCS:.cc=.o) SocketLibrary/libsock.a
 
-OTHERSRCS = sender.cc receiver.cc unit.cc common.c sendAndRecv.cc 
+OTHERSRCS = sender.cc receiver.cc unit.cc common.c sendAndRecv.cc receivePool2.cc
 
 SRCS = $(COMMONSRCS) $(OTHERSRCS)
 
@@ -53,8 +53,14 @@ receiver: receiver.o common.o $(COMMONOBJS)
 test: test.o
 	$(CC) -o test test.o common.o $(COMMONOBJS) $(LIBS)
 
+receivePool: receivePool2.o
+	$(CC) -o receivePool receivePool2.o common.o $(COMMONOBJS) $(LIBS)
+
 simpleGraph: sender receiver example.gnuplot
 	receiver 5000 & > /dev/null; sleep 1; sender 127.0.0.1 5000 2 | gawk -f diff.awk > tmp.dat; gnuplot example.gnuplot; echo "Done. Graph is in tmp.ps. Note that the receiver is still running. You may want to kill it."
+
+simpleGraph2: sender receiver example.gnuplot
+	receivePool 5000 & > /dev/null; sleep 1; sender 127.0.0.1 5000 2 | gawk -f diff.awk > tmp.dat; gnuplot example.gnuplot; echo "Done. Graph is in tmp.ps. Note that the receiver is still running. You may want to kill it."
 
 
 plot1.ps: sendAndRecv plot1.gnuplot
