@@ -13,6 +13,8 @@
 #include "Stats.h"
 #include "MaxNWScheduler.h"
 #include "STFQueue.h"
+#include "STFQNWScheduler.h"
+#include "rec_queue.h"
 
 /*
  *------------------------------------------------------------------
@@ -46,8 +48,19 @@ int main(int argc, char **argv)
 
   q->unit();
 
+  STFQNWScheduler *sh = new STFQNWScheduler(1000000);
+  
+  sh->unit();
+
+  rec_queue *rq = new rec_queue();
+
+  rq->unit();
+
+  delete rq;
+  delete sh;
   delete s;
   delete nws;
+  delete(q);
 
   assert(1); // Add unit tests for other modules
 }
