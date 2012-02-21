@@ -11,17 +11,16 @@ STFQNWScheduler::STFQNWScheduler(long bytesPerSec)
    maxBytes = bytesPerSec;
 	assert( maxBytes == bytesPerSec);
 	assert( maxBytes > 0);
-	//que = new STFQueue();
-	//que = STFQueue();
 
+	// create sync variables
 	smutex_init(&lock); //init lock
 	scond_init(&safeSend); //init Condition variable
 	scond_init(&deadline);
 	scond_init(&queueFull);
 
-	runOff = 0;
-	bytesToSend = -1;
-	nextId = -1;
+	runOff = 0; // used to calculate acurate time
+	bytesToSend = -1; // if > 0, there is something to send
+	nextId = -1; // if > 0 is the id of the flow to give work
 }
 
 STFQNWScheduler::~STFQNWScheduler() {
@@ -29,7 +28,6 @@ STFQNWScheduler::~STFQNWScheduler() {
 	scond_destroy(&safeSend);
 	scond_destroy(&deadline);
 	scond_destroy(&queueFull);
-	//free(que);
 }
 
 
