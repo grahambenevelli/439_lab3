@@ -95,6 +95,7 @@ cm:
 	/bin/rm -f sender receiver unit *.o core *~ TAGS tmp.dat tmp.ps *.log *.aux
 	cd SocketLibrary && make clean
 	make
+	make receivePool
 
 realclean: clean
 	/bin/rm -f *.pdf *ps data1 data2 data3 data1b data2b data3b

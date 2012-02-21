@@ -76,6 +76,7 @@ acceptor(rec_queue * RQ) //enqueue inputstream
 	    }
 	    nflows++;
 	    InputStream *is = new InputStream(socket_recv, nflows, stats);
+    	    printf("InpSt add: %d\n", (int) is);
 
 	    RQ->enqueue(is);
 	    

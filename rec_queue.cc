@@ -6,7 +6,7 @@
 	rec_queue::rec_queue() {
 		smutex_init(&lock);		//init lock
 		scond_init(&queueEmpty);	//init Condition variable
-		root = NULL;
+		root = (rec_node*) malloc(sizeof(rec_node));
 	}
 
 	rec_queue::~rec_queue() {
@@ -27,7 +27,6 @@
 
 	void rec_queue::printQueue() {
 		int j =0;
-		//int c = 0;
 		rec_node *temp = root;
 		if(root == NULL) { printf("Nothing\n"); return; }
 		while(temp != NULL) {
@@ -42,25 +41,16 @@
 	void rec_queue::enqueue(InputStream *io) {
 		smutex_lock(&lock);
 
-		rec_node *temp = (rec_node*) malloc(sizeof(rec_node));
+		struct rec_node *temp = (rec_node*) malloc(sizeof(rec_node));
 		temp->is = io;
-		temp->next = NULL;
 
-		if (root == NULL) {
-			printf("Root: \n");
-			root = temp;
-			root->is = io;
-			root->next = NULL;
-			printQueue();
-			smutex_unlock(&lock);
-			return;
-		}
+		temp->next = NULL;
 
 		rec_node *current = root;
 		while(current->next != NULL) {
 			current = current->next;
 		}
-		//assert(current->next == NULL);
+
 		current->next = temp;
 
 		scond_broadcast(&queueEmpty, &lock);
@@ -72,26 +62,24 @@
 	InputStream* rec_queue::dequeue() {
 		smutex_lock(&lock);
 
-		while (root == NULL) {
+		while (root->next == NULL) {
 			scond_wait(&queueEmpty, &lock);
 		}
 
-		InputStream *out = root->is;
-		rec_node *temp = root;
-		if(root->next == NULL)
-			root = NULL;
+		InputStream *out = root->next->is;
+
+		if(root->next->next == NULL)
+			root->next = NULL;
 		else 
-			root = root->next;
-		delete(temp);
+			root->next = root->next->next;
 
 		smutex_unlock(&lock);
-
 		return out;
 	}
 
 	bool rec_queue::isEmpty() {
 		smutex_lock(&lock);
-		bool out = root == NULL;
+		bool out = root->next == NULL;
 		smutex_unlock(&lock);
 		return out;
 	}
