@@ -116,7 +116,19 @@ STFQueue::enqueue(int flowID, float weight, int lenToSend) {
 
 void
 STFQueue::resizeArray(int id) {
+	int new_max_ID = max_ID * 1.5;
+	if (id > new_max_ID) new_max_ID = id + max_ID*0.5;
+	int i;
 
+	struct thread_list **new_t_array  = (thread_list**) malloc(sizeof(int) * new_max_ID);
+
+	for (i = 0; i < max_ID; i++) {
+		new_t_array[i] = t_array[i];
+	}
+	delete t_array;
+
+	t_array = new_t_array;
+	max_ID = new_max_ID;
 }
 
 int STFQueue::dequeue() {

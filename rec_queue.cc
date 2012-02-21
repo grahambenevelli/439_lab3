@@ -90,8 +90,8 @@ void rec_queue::unit() {
 	bool allPassed = true;
 
 	//construtctor test 1 
-	result = root == NULL;
-	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	result = root != NULL;
+	if (!result) {printf("Test %d failed in rec_queue\n", test); allPassed = false;}
 	test++;
 
 	//isEmpty test 2
@@ -115,7 +115,7 @@ void rec_queue::unit() {
 	test++;
 
 	//isEmpty test 5
-	result = root->next == NULL;
+	result = root->next->next == NULL;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
 
