@@ -380,10 +380,36 @@ void STFQueue::unit() {
 	enqueue(5, 3, 10);
 	enqueue(1, 3, 10);
 
+	resizeArray(max_ID + 1);
+	// resize Tests 34
+	result = max_ID == 15;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	// resize Tests 35
+	result = t_array[0] != NULL;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	// resize Tests 36
+	result = t_array[1] != NULL;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	// resize Tests 37
+	result = t_array[4] != NULL;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
 	deleteNodes();
 
-	// delete Tests 34
+	// delete Tests 38
 	result = t_array[0] == NULL;
+	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
+	test++;
+
+	// delete Tests 39
+	result = t_array[1] == NULL;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
 
