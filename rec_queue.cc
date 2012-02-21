@@ -4,7 +4,7 @@
 
 
 	rec_queue::rec_queue() {
-		smutex_init(&lock);	//init lock
+		smutex_init(&lock);		//init lock
 		scond_init(&queueEmpty);	//init Condition variable
 		root = NULL;
 	}
@@ -25,15 +25,37 @@
 		}
 	}
 
+	void rec_queue::printQueue() {
+		int j =0;
+		//int c = 0;
+		rec_node *temp = root;
+		if(root == NULL) { printf("Nothing\n"); return; }
+		while(temp != NULL) {
+			printf("(%d) %d",j,(int)temp->is);
+			temp = temp->next;
+			j++;
+		}
+		printf("\n");
+	}
+
 
 	void rec_queue::enqueue(InputStream *io) {
 		smutex_lock(&lock);
 
 		rec_node *temp = (rec_node*) malloc(sizeof(rec_node));
+		temp->is = io;
+		temp->next = NULL;
+
 		if (root == NULL) {
+			printf("Root: \n");
 			root = temp;
+			root->is = io;
+			root->next = NULL;
+			printQueue();
+			smutex_unlock(&lock);
 			return;
 		}
+
 		rec_node *current = root;
 		while(current->next != NULL) {
 			current = current->next;
@@ -41,7 +63,7 @@
 		//assert(current->next == NULL);
 		current->next = temp;
 
-		scond_signal(&queueEmpty, &lock);
+		scond_broadcast(&queueEmpty, &lock);
 
 		smutex_unlock(&lock);
 	}
@@ -56,7 +78,10 @@
 
 		InputStream *out = root->is;
 		rec_node *temp = root;
-		root = root->next;
+		if(root->next == NULL)
+			root = NULL;
+		else 
+			root = root->next;
 		delete(temp);
 
 		smutex_unlock(&lock);
@@ -65,7 +90,10 @@
 	}
 
 	bool rec_queue::isEmpty() {
-		return root == NULL;
+		smutex_lock(&lock);
+		bool out = root == NULL;
+		smutex_unlock(&lock);
+		return out;
 	}
 
 void rec_queue::unit() {
@@ -82,6 +110,9 @@ void rec_queue::unit() {
 	result = isEmpty();
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
+	
+	Stats *stats = new Stats();
+	InputStream *io = new InputStream(5000, 2, stats);
 
 	enqueue(NULL);
 
@@ -90,16 +121,29 @@ void rec_queue::unit() {
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
 	
-	//isEmpty test 3
+	//isEmpty test 4
 	result = root != NULL;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
-/*
-	//isEmpty test 3
+
+	//isEmpty test 5
 	result = root->next == NULL;
 	if (!result) {printf("Test %d failed in STFQueue\n", test); allPassed = false;}
 	test++;
-*/
+
+	enqueue(io);
+	enqueue(io);
+	enqueue(io);
+	enqueue(io);
+
+	printQueue();
+
+	dequeue();
+
+	printQueue();
+	
+	delete io;
+	delete stats;
 	if (allPassed) printf("All %d tests passed in rec_queue\n", test-1);
 }
 

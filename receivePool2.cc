@@ -61,14 +61,14 @@ main(int argc, char **argv)
 
 	//InputStream *io = new InputStream(5, 6, stats);
 
-	sthread_t *thread = (sthread_t *)malloc(sizeof(sthread_t));
-	sthread_create(thread, (void*(*)(void*))acceptor, (void*)RQ);
+	//sthread_t *thread = (sthread_t *)malloc(sizeof(sthread_t));
+	//sthread_create(thread, (void*(*)(void*))acceptor, (void*)RQ);
 
 	for(ii = 0; ii < NUM_WORKERS; ii++){
 		sthread_t *thread = (sthread_t *)malloc(sizeof(sthread_t));
 		sthread_create(thread, (void*(*)(void*))worker, (void*)RQ);
 	}
-
+	acceptor(RQ);
 	return 1;
 }
 
@@ -77,8 +77,9 @@ void
 acceptor(rec_queue * RQ) //enqueue inputstream
   {
 	int socket_recv;
-
+	//printf("Acceptor\n");
     	while(1){
+		//printf("Acceptor\n");
 	    /* 
 	     * Wait on the socket for a new connection to arrive.  This
 	     * is done using the "accept" library call.  The return value
@@ -95,9 +96,11 @@ acceptor(rec_queue * RQ) //enqueue inputstream
 	    }
 	    nflows++;
 	    InputStream *is = new InputStream(socket_recv, nflows, stats);
-    
+    	    
 	    RQ->enqueue(is);
+	    
   	}
+	exit(42);
   }
 
 
@@ -109,9 +112,12 @@ worker(rec_queue * RQ)//dequeue inputstream
 	const int BUFFER_SIZE = 4096;
 	char buffer[BUFFER_SIZE];
 	InputStream *is;
-
+	
     while(1){
+	//printf("reading data\n");
+	RQ->printQueue();
 	is = RQ->dequeue();
+	
 	got = is->read(buffer, BUFFER_SIZE);
 	if(got <= 01){
 		if(DEBUGGING){
@@ -122,4 +128,5 @@ worker(rec_queue * RQ)//dequeue inputstream
 	tot += got;
 	free(is);
     }
+	exit(42);
   }

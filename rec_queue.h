@@ -20,11 +20,13 @@ class rec_queue {
 	struct rec_node {
 		InputStream *is;
 		rec_node *next	;
-	} *root;
+	};
 
 	//synchronization variables
 	smutex_t lock;
 	scond_t queueEmpty;
+	struct rec_node * root;
+	
 	
 	public:
 	rec_queue();
@@ -33,6 +35,7 @@ class rec_queue {
 	InputStream* dequeue();
 	bool isEmpty();
 	void unit();
+	void printQueue();
 };
 
 
